@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dự đoán Tỷ suất sinh lời USD/VND</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 600px; /* Giảm max-width cho ít trường nhập liệu hơn */
+            width: 100%;
+        }
+
+        h1 {
+            color: #004d40;
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        p {
+            color: #555;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr; /* Chỉ cần 1 cột */
+            gap: 20px;
+        }
+
+        h3 {
+            grid-column: 1 / -1;
+            color: #00796b;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            border-bottom: 1px dashed #cfd8dc;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #009688;
+            outline: none;
+        }
+
+        
+        input[type="submit"] {
+            grid-column: 1 / -1;
+            background-color: #009688;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #00796b;
+        }
+
+        input[type="submit"]:active {
+            transform: scale(0.98);
+        }
+        
+        
+        .prediction-result {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            border: 2px dashed #009688;
+            background-color: #e0f2f1;
+            border-radius: 8px;
+        }
+        
+        .prediction-result h2 {
+            color: #004d40;
+            margin: 0;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Hệ thống Dự đoán Tỷ suất sinh lời USD/VND <span style="font-size: 0.8em; color: #555;">(Random Forest)</span></h1>
+        <p>Vui lòng nhập **7 đặc trưng** (là giá trị Tỷ suất sinh lời trễ, KHÔNG CHUẨN HÓA) để mô hình dự đoán Tỷ suất sinh lời trung bình **3 ngày tới**.</p>
+
+        <form action="{{ url_for('predict') }}" method="post">
+            
+            <h3>Tỷ suất sinh lời trễ (Lagged Returns)</h3>
+            
+            <div class="form-group">
+                <label for="Lần cuối_vnd_ret_lag1">USD/VND (lag 1 ngày):</label>
+                <input type="text" name="Lần cuối_vnd_ret_lag1" required placeholder="Ví dụ: 0.0005 (0.05%)">
+            </div>
+
+            <div class="form-group">
+                <label for="Lần cuối_vnd_ret_lag3">USD/VND (lag 3 ngày):</label>
+                <input type="text" name="Lần cuối_vnd_ret_lag3" required placeholder="Ví dụ: -0.0010 (-0.10%)">
+            </div>
+
+            <div class="form-group">
+                <label for="Lần cuối_cny_ret_lag1">CNY/USD (lag 1 ngày):</label>
+                <input type="text" name="Lần cuối_cny_ret_lag1" required placeholder="Ví dụ: 0.0001">
+            </div>
+
+            <div class="form-group">
+                <label for="Lần cuối_dxy_ret_lag1">Chỉ số DXY (lag 1 ngày):</label>
+                <input type="text" name="Lần cuối_dxy_ret_lag1" required placeholder="Ví dụ: 0.0002">
+            </div>
+
+            <div class="form-group">
+                <label for="Lần cuối_gold_ret_lag1">Giá Vàng (lag 1 ngày):</label>
+                <input type="text" name="Lần cuối_gold_ret_lag1" required placeholder="Ví dụ: 0.005">
+            </div>
+            
+            <div class="form-group">
+                <label for="Lần cuối_bond_ret_lag1">Lãi suất Trái phiếu VN 10Y (lag 1 ngày):</label>
+                <input type="text" name="Lần cuối_bond_ret_lag1" required placeholder="Ví dụ: 0.0003">
+            </div>
+            
+            <div class="form-group">
+                <label for="DFF_ret_lag1">Fed Funds Rate (lag 1 ngày):</label>
+                <input type="text" name="DFF_ret_lag1" required placeholder="Ví dụ: 0.0000">
+            </div>
+
+            <input type="submit" value="Dự đoán Tỷ suất sinh lời">
+        </form>
+
+        <div class="prediction-result">
+        
+                <h2>{{ prediction_text }}</h2>
+            
+        </div>
+    </div>
+
+</body>
+</html>
